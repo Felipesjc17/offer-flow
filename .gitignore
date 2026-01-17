@@ -1,0 +1,8 @@
+# Arquivos de ambiente
+.env
+
+# Diretório de ambiente virtual
+.venv/
+
+# Arquivo de banco de dados local
+deals.db

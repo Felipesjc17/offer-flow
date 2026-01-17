@@ -1,0 +1,125 @@
+{
+   "checksum": "05b5a014e947dacca530adf9ff4a1154",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "date_added": "13411000395985819",
+            "date_last_used": "0",
+            "guid": "1a226556-f705-4826-8dfe-94ec6a278253",
+            "id": "5",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Central de afiliados e criadores",
+            "type": "url",
+            "url": "https://www.mercadolivre.com.br/afiliados/hub"
+         }, {
+            "date_added": "13411000496516820",
+            "date_last_used": "0",
+            "guid": "b7690026-1592-4234-91db-1fba43de8689",
+            "id": "6",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Link Builder",
+            "type": "url",
+            "url": "https://www.mercadolivre.com.br/afiliados/linkbuilder#hub"
+         }, {
+            "date_added": "13411000843612284",
+            "date_last_used": "0",
+            "guid": "ab3ee465-60bc-41b5-bdcb-51df09755dd0",
+            "id": "7",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Criadores e Afiliados Shopee | Shopee 2025",
+            "type": "url",
+            "url": "https://affiliate.shopee.com.br/dashboard?is_from_login=true"
+         }, {
+            "date_added": "13411019375837273",
+            "date_last_used": "0",
+            "guid": "273c3479-cc95-4e7c-ad5e-bb3d639b7843",
+            "id": "8",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Bitly | Links",
+            "type": "url",
+            "url": "https://app.bitly.com/Bpco1DHNZlf/links"
+         }, {
+            "date_added": "13411020267739887",
+            "date_last_used": "0",
+            "guid": "3c03d6c4-4fb6-4607-9bca-7821c863513e",
+            "id": "9",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "My Site - Bio Sites | Editor",
+            "type": "url",
+            "url": "https://biosites.com/editor#/achadostecbr/sections"
+         }, {
+            "date_added": "13411021680185688",
+            "date_last_used": "0",
+            "guid": "fbc0ab5c-ab93-40ea-b56d-80bcdfabc603",
+            "id": "10",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Achados Tec Brasil — Bio Sites",
+            "type": "url",
+            "url": "https://bio.site/achadostecbr"
+         }, {
+            "date_added": "13411602671338818",
+            "date_last_used": "0",
+            "guid": "c76e9053-cbd7-427e-85bc-00c820eed456",
+            "id": "11",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "API Shopee",
+            "type": "url",
+            "url": "https://affiliate.shopee.com.br/open_api"
+         }, {
+            "date_added": "13411602787390767",
+            "date_last_used": "0",
+            "guid": "1c510018-299d-41fb-9e83-08cc0dbdd9e0",
+            "id": "12",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "Informações de pagamento shopee",
+            "type": "url",
+            "url": "https://affiliate.shopee.com.br/payment_setting/records"
+         } ],
+         "date_added": "13411890558115842",
+         "date_last_used": "0",
+         "date_modified": "13411602787390767",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "Barra de favoritos",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13411890558115842",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "82b081ec-3dd3-529c-8475-ab6c344590dd",
+         "id": "2",
+         "name": "Outros favoritos",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13411890558115842",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "3",
+         "name": "Dispositivos Móveis",
+         "type": "folder"
+      }
+   },
+   "sync_metadata": "CuABCr8BCIiBAhK4ASAAkgGjAQqgAQoOY2hyb21lX3N5bmNfYm0SBTUxIWJtGhIJNIpX2HRHBgARNIpX2HRHBgAiNAn2fTDYdEcGABADGaS/qsBVCdo6IAEqHDUxIWJtL2ZkOjkxNjM3MjM1NTk0Njg4OTMxNjEiNAn2fTDYdEcGABADGaS/qsBVCdo6IAEqHDUxIWJtL2ZkOjkxNjM3MjM1NTk0Njg4OTMxNjEpXMlX2HRHBgDqAQwIx8niygYQ+O/2sQISACoYNnltcmV6OC9semdvZDQ5VDJNNHpDQT09SAMSwwEIAxK+AQocbmpnRHU4OGVDcnZYcDg2cEQ3ZkhHY3FGcDg4PRJmWjpBRHF0QVp5Z1VyVDB3Z0ZFN1RoMzNTbHE5MVpORHRKN0E5YW9TNDZLYmN2SzhnMlUzT1FyVVVvNW8rOUdWdUlNQUx5enZrS2lST2RlTkVwVmhXRTdNSk4wQWl6dDBmTCtzUT09GAAgACgAMKuC9f7H1JEDOABAAEoceXpOQjAxY241NEE3Y1JVMHVUKy9QZ21UdFVvPVoAZQAAAAAS7AEIDBLnAQocZ0VMc2t0cDkxekxRZjFocE81K2l5UFZTWXM0PRJmWjpBRHF0QVp4cWVFdXpJbk0xajZabUdsdFA5aHB1Y1NnNXA4UmdkNXQ0c2pRajVkeFQ4YlBiUjFoZkhKZHN6NnJJQm1nTGVCV044UHRLZFlXbm9wWmZiZDlSS2pWOGNjMEZXdz09GAAgACgAMLqOj6Gd5pEDOL6I7oi3M0C+iO6ItzNKHFpjSXdKdFhFOVdNRGpOdGpQcG9KcHpEU0NKcz1aHyId/TNNMC8yVEVSK2pBelplS2ZBRE1wRWhscHBjTT1lAAAAABLsAQgKEucBChwxYWhKYk00RFFheWdUa0wyK1JVVkJieEg0TzA9EmZaOkFEcXRBWnhxZUV1ekluTTFqNlptR2x0UDlocHVadit5L2Fud01sbGJVOGx2NFdEQjlBUmZ4THo2M1VTNEhTZ3QvVTUyNmw2Z0RGMjRkMTZLN3UzSnMxVWRxUjRoSGtjU0h3PT0YACAAKAAw17HvtqjVkQM4uozi87QzQLqM4vO0M0ocR1oySE1hTW10cWRwczRwaS96aEtmOUptbEdRPVofIh31aUF5ekk4bFlPQ1oxbDdXRkIzSHljeFdIVVZvPWXSFagXEuwBCAsS5wEKHGRSVGltcy9kVnp5cDFXMnFuNzFHZW1XbWQ1MD0SZlo6QURxdEFaeHFlRXV6SW5NMWo2Wm1HbHRQOWhwdVZZQmhPVmo4KzZXa0pKVEdENUd6Uk05Q3NPYVNiTlh6cDFTbHNmK0xpbzlKa2VyRTVtck81WEVISTA4cS93aGZLTkF4ZUE9PRgAIAAoADCsjYTtnOaRAzjr/eaItzNA6/3miLczShxEUmw3dXM5QWVCU2dPZGZwOHJYcUNwOFRqVlU9Wh8iHfo2cFdtWWp4ejlwNXRuSkEvNjJjdU9NQk52T009ZVByj6kS7AEICRLnAQocM1BNWjVrS2trUE5sKzJ0K01mbjFya0NWU3RRPRJmWjpBRHF0QVp4cWVFdXpJbk0xajZabUdsdFA5aHB1UG1sb0taekVsc3VwMEFoMWV0cTdaNFFGbWl0U3ZURTBRa2x0T3dUMWEyOEQvdkNCK2NBb1JpSjA4czAwTVdxWm1uQXNUQT09GAAgACgAMK3Y05Wj1ZEDONzxi/O0M0Dc8YvztDNKHGlVbk9Ia2trSnowSGNhd2RQNnU0eGllVTQ0bz1aHyId63hxZ3REdEFUdS9JQmIvZzlKZ3dJU0g5eUNTQT1l0hWoFxLsAQgIEucBChxScE9IQkQ0Y0VmYmFtTDFKN3JLdWJiQkpUSDg9EmZaOkFEcXRBWnhxZUV1ekluTTFqNlptR2x0UDlocHVxUEJDU0huQ3ZVRVlleTRlMmEyV3AvWWRYaFc3c3crSlVidHhLbUZ2Tm5jYkJJaGpwUjkrRU5UcmlNZmljVGtIV0RsQzB3PT0YACAAKAAw6qao7J/VkQM43bnV8rQzQN251fK0M0ocNk1reTdlYkgrdm9vNmdEY1hMVE5BZ0tyQ0xVPVofIh3WT3g5a1lZNExwc05iaGtQM1lELzl4SmpiVzRvPWXNWR9yEuwBCAcS5wEKHGM3MDVHMGx1QnQ3SjBJSXlTb3UwRFBNMHRLUT0SZlo6QURxdEFaeHFlRXV6SW5NMWo2Wm1HbHRQOWhwdVUvZjUzRkFITXp0UmQ4R0hVVHMxajJOZmVhSlNrVCs3TkNSVWZqNVFTMUlGL09LbVl0N0hqK2hXeWkwd3JhTnd3WjdSNmc9PRgAIAAoADCq8tnn2tSRAzjcqurptDNA3Krq6bQzShxHVGltSms5cDRxN3g4ZTJ3NXBOOTJBWWp3MzQ9Wh8iHa1XcXphU1UrMXR2ZmlubXFvYk5aV2pEMFhTSkE9ZVByj6kSwwEIAhK+AQocWWNTVG9udkVTUHdxQ3M0TDJjclZodjY4TDk4PRJmWjpBRHF0QVp6NCtqNUxKWUNsSXI0NE0yeVA2QUt5eC9vVGNmVWFuaEQ4dUJOcit5Z2JBR2ZDeHA4cjUzd1pjbUZmazlVRTM2anFuZmRXMGluTzFGSXI3eUltck43c3VkL01XQT09GAAgACgAMKuC9f7H1JEDOABAAEocb1BWa2h3QlJiVjY1S0NXUjIrSU9OSFdvT3U4PVoAZQAAAAAS6wEIBhLmAQocZ3pFSkNKeE1kdDU1cGlJMUdDL0FoNk90cTBBPRJmWjpBRHF0QVp4cWVFdXpJbk0xajZabUdsdFA5aHB1NnNLNHowTGd5QTlrNHJxc0YwLy84Ly9FUzlRWERQUkxhZ1F2bzYrRGN3dWZ0bWxNUzM0NDFCRmJxZElndy94YkRBdUszQT09GAAgACgAMNrln8LZ1JEDOIWT1em0M0CFk9XptDNKHGRDWWhxYVU3eC9kbmQvTHVCc01tRlB5b2NQOD1aHiIcWkE0ZzluaUZ4cTIwd0RJUEdNNHpTRjN4NnVZPWWFGPj5EusBCAUS5gEKHFZiOVpOMmw2SEJGM0tyV2d4ZEVFUlRMMkoybz0SZlo6QURxdEFaeHFlRXV6SW5NMWo2Wm1HbHRQOWhwdXlMUXY3Yk5jSFdMalBJTUdUQ0pobkJ2Z2FmbnZHVXJ4UUhFcU81TjZTQ2ZwWDV1b2hRR1lkUXN3VGRGbVRHeER3ZHNnU1E9PRgAIAAoADDtrNKU2dSRAzjSgc/ptDNA0oHP6bQzShx2WnhsY2txTkRaUHo5S2IyOXBnV2luVjdNNjQ9Wh4iHFR5ZUtqMkREQnM2bGNvZlcyOUhzcjlWRDZMQT1lhRj4+RKrAQgBEqYBChx5eEovNmZ2a2VjcjdrcDVFUXpCNHRXTHBkYkU9Ek5aOkFEcXRBWng1WmhWR2pxTEdzNTJaMUpTUVFOQzNyUG45RWI2bTlpSU1SNFRFbnh0MVRCOW9BV3hTdGMzS3NkMFJyckxuRU82ZnZIb0cYACAAKAAwq4L1/sfUkQM4AEAAShxhUkNXTGdoRjliNUlucUtJRHZ1Si9qdlFrRmM9WgBlAAAAADABOAA=",
+   "version": 1
+}
