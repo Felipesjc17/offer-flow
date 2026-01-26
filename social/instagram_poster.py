@@ -40,11 +40,8 @@ class InstagramPoster(BasePoster):
             f"(Link real: {deal_data['link']})", # O link não é clicável no feed do Instagram
             "\n#oferta #promocao #desconto #achadinhos"
         ])
-        
-        caption = "\n".join(caption_lines)
 
-        print(f"   Imagem a ser postada: {deal_data.get('imagem')}")
-        print(f"   Legenda a ser usada:\n---\n{caption}\n---")
+        print(f"  Produto a ser postado: {deal_data.get('titulo')}")
         
         # Simula o tempo que uma chamada de API levaria
         time.sleep(1)

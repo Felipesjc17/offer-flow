@@ -1,19 +1,31 @@
 import os
 import sys
 import time
+# Correção para Python 3.12+: O undetected_chromedriver precisa do distutils,
+# que foi removido. Importar o setuptools restaura essa funcionalidade.
+try:
+    import setuptools
+except ImportError:
+    pass
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+uc_error = None
 try:
     import undetected_chromedriver as uc
-except ImportError:
-    print(">>> undetected_chromedriver não instalado. Execute: pip install undetected-chromedriver")
-    sys.exit(1)
+except Exception as e:
+    uc = None
+    uc_error = e
 
 from .base_scraper import BaseScraper
+from database.database import deal_exists
 
 class MagazineLuizaScraper(BaseScraper):
     def __init__(self, url, session_path):
+        if uc is None:
+            print(f">>> ERRO DETALHADO AO IMPORTAR: {uc_error}")
+            print(">>> undetected_chromedriver não instalado. Execute: pip install undetected-chromedriver")
+            sys.exit(1)
         self.url = url
         self.session_path = session_path
         self.driver = self._iniciar_driver()
@@ -38,11 +50,18 @@ class MagazineLuizaScraper(BaseScraper):
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="product-card-container"]')))
         time.sleep(2)
 
-        produtos = []
         cards = self.driver.find_elements(By.CSS_SELECTOR, '[data-testid="product-card-container"]')
 
-        for i, card in enumerate(cards[:3]):
+        candidatos = []
+        collected_count = 0
+        for i, card in enumerate(cards):
+            if collected_count >= 3:
+                break
             try:
+                link_original = card.get_attribute("href")
+                if deal_exists(link_original):
+                    continue
+
                 titulo = card.find_element(By.CSS_SELECTOR, '[data-testid="product-title"]').text
                 preco = card.find_element(By.CSS_SELECTOR, '[data-testid="price-value"]').text
                 
@@ -65,8 +84,6 @@ class MagazineLuizaScraper(BaseScraper):
                 except:
                     pass
 
-                link_original = card.get_attribute("href")
-                
                 imagem = None
                 try:
                     img_elem = card.find_element(By.CSS_SELECTOR, 'img[data-testid="image"]')
@@ -74,7 +91,7 @@ class MagazineLuizaScraper(BaseScraper):
                 except:
                     pass
 
-                produtos.append({
+                candidatos.append({
                     "titulo": titulo,
                     "preco": preco,
                     "preco_original": preco_original,
@@ -83,11 +100,27 @@ class MagazineLuizaScraper(BaseScraper):
                     "link": link_original,
                     "imagem": imagem
                 })
-                print(f"   [Coletado] {titulo[:30]}...")
+                print(f"   [Candidato] {titulo[:30]}...")
+                collected_count += 1
             except Exception as e:
                 print(f"   [Erro ao ler card {i}]: {e}")
                 continue
-                
+
+        produtos = []
+        for item in candidatos:
+            try:
+                print(f"   >>> Obtendo imagem HQ de: {item['titulo'][:30]}...")
+                self.driver.get(item['link'])
+                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="image-selected-thumbnail"]')))
+                img_hq = self.driver.find_element(By.CSS_SELECTOR, '[data-testid="image-selected-thumbnail"]')
+                if img_hq.get_attribute("src"):
+                    item['imagem'] = img_hq.get_attribute("src")
+            except Exception as e:
+                print(f"   [Aviso] Falha ao obter imagem HQ: {e}")
+            
+            produtos.append(item)
+            time.sleep(1)
+
         return produtos
 
     def close(self):

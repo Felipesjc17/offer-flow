@@ -44,8 +44,7 @@ class FacebookPoster(BasePoster):
         
         message = "\n".join(message_lines)
 
-        print(f"   Imagem a ser anexada: {deal_data.get('imagem')}")
-        print(f"   Texto da postagem:\n---\n{message}\n---")
+        print(f"  Produto a ser postado: {deal_data.get('titulo')}")
         
         # Simula o tempo que uma chamada de API levaria
         time.sleep(1)

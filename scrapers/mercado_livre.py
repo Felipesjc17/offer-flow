@@ -1,6 +1,12 @@
+import sys
 import requests
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
 from .base_scraper import BaseScraper
+from database.database import deal_exists
 
 class MercadoLivreScraper(BaseScraper):
     """
@@ -8,6 +14,9 @@ class MercadoLivreScraper(BaseScraper):
     Este scraper usa requests e BeautifulSoup, sendo mais leve que o Selenium.
     """
     def __init__(self, url):
+        if BeautifulSoup is None:
+            print(">>> beautifulsoup4 não instalado. Execute: pip install beautifulsoup4")
+            sys.exit(1)
         self.url = url
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -35,8 +44,16 @@ class MercadoLivreScraper(BaseScraper):
         if not cards:
             print("   [Aviso] Nenhum card de produto encontrado com o seletor. A estrutura do site pode ter mudado.")
 
-        for i, card in enumerate(cards[:5]): # Limita aos 5 primeiros para o exemplo
+        collected_count = 0
+        for i, card in enumerate(cards):
+            if collected_count >= 5:
+                break
             try:
+                link_elem = card.find('a', class_='promotion-item__link-container')
+                link = link_elem['href'] if link_elem else "Link não encontrado"
+                if deal_exists(link):
+                    continue
+
                 titulo_elem = card.find('p', class_='promotion-item__title')
                 titulo = titulo_elem.text.strip() if titulo_elem else "Título não encontrado"
 
@@ -54,9 +71,6 @@ class MercadoLivreScraper(BaseScraper):
                 else:
                     preco_original = ""
                 
-                link_elem = card.find('a', class_='promotion-item__link-container')
-                link = link_elem['href'] if link_elem else "Link não encontrado"
-
                 img_elem = card.find('img', class_='promotion-item__img')
                 imagem = img_elem['src'] if img_elem else None
 
@@ -70,6 +84,7 @@ class MercadoLivreScraper(BaseScraper):
                     "imagem": imagem
                 })
                 print(f"   [Coletado] {titulo[:30]}...")
+                collected_count += 1
             except Exception as e:
                 print(f"   [Erro ao ler card {i} do Mercado Livre]: {e}")
                 continue
