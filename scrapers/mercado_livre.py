@@ -13,11 +13,12 @@ class MercadoLivreScraper(BaseScraper):
     Scraper para capturar ofertas do dia do Mercado Livre.
     Este scraper usa requests e BeautifulSoup, sendo mais leve que o Selenium.
     """
-    def __init__(self, url):
+    def __init__(self, url, limit=5):
         if BeautifulSoup is None:
             print(">>> beautifulsoup4 não instalado. Execute: pip install beautifulsoup4")
             sys.exit(1)
         self.url = url
+        self.limit = limit
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
@@ -46,7 +47,7 @@ class MercadoLivreScraper(BaseScraper):
 
         collected_count = 0
         for i, card in enumerate(cards):
-            if collected_count >= 5:
+            if collected_count >= self.limit:
                 break
             try:
                 link_elem = card.find('a', class_='promotion-item__link-container')

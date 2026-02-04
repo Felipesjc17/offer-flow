@@ -68,6 +68,23 @@ O arquivo `.env` armazena as URLs dos scrapers e as chaves de API.
 - Renomeie o arquivo `.env.example` para `.env`.
 - Preencha as variáveis. Deixar uma URL de scraper em branco desativará o scraper correspondente.
 - **Atenção:** Certifique-se de definir a variável `AUTHENTICATION_API_KEY` no arquivo `.env`. Esta chave define a senha global da Evolution API (usada no login do Manager) e deve corresponder à variável `EVOLUTION_API_KEY` usada pelo script Python.
+- **Limites de Produtos:** Você pode configurar a quantidade de produtos por site adicionando as variáveis:
+    - `DEFAULT_PRODUCTS_LIMIT=2` (Padrão geral)
+    - `MAGAZINE_LUIZA_LIMIT=5`
+    - `MERCADO_LIVRE_LIMIT=5`
+    - `SHOPEE_LIMIT=5`
+- **Horário de Funcionamento:** Para limitar o horário de execução do robô:
+    - `EXECUTION_START_HOUR=8` (Hora de início, ex: 8 para 08:00)
+    - `EXECUTION_END_HOUR=22` (Hora de término, ex: 22 para 22:00)
+- **Filtro de Preço:** Para evitar postar produtos muito baratos:
+    - `MIN_PRICE_TO_POST=20.00` (Postar apenas produtos acima de R$ 20,00)
+- **Filtros Shopee:**
+    - `SHOPEE_MIN_SALES=20` (Mínimo de vendas para considerar a oferta)
+    - `SHOPEE_MIN_RATING=4.0` (Avaliação mínima para considerar a oferta)
+- **Ambientes e Monitoramento:**
+    - `APP_ENV="production"` (Defina como `test` para usar o grupo de teste)
+    - `WHATSAPP_CHAT_ID_TEST` (ID do grupo para testes, usado quando `APP_ENV=test`)
+    - `WHATSAPP_ERROR_GROUP_ID` (ID do grupo para receber notificações de erros críticos e logs)
 
 ### 4. Configure e Inicie a API de WhatsApp (Evolution API)
 
@@ -103,6 +120,18 @@ Para que o envio de ofertas para o WhatsApp funcione, a **Evolution API** precis
     ```
 
 ## Executando o Projeto
+
+### Opção 1: Execução Automática (Windows)
+
+Para facilitar a execução no Windows, utilize o arquivo `run.bat`. Ele ativa o ambiente virtual, limpa processos antigos do Chrome (evitando erros de sessão) e inicia a aplicação.
+
+Basta clicar duas vezes no arquivo `run.bat` na raiz do projeto ou executá-lo via terminal:
+
+```cmd
+run.bat
+```
+
+### Opção 2: Execução Manual
 
 Com o ambiente virtual ativado e os serviços da Evolution API rodando, execute o script principal:
 

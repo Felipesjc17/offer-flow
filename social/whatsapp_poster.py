@@ -32,7 +32,11 @@ class WhatsappPoster(BasePoster):
         if deal_data.get('parcelamento'):
             msg_linhas.append(f"Por apenas {deal_data['parcelamento']}")
             
-        msg_linhas.append(f"{deal_data['preco']} no Pix")
+        # Adiciona "no Pix" apenas se for Magazine Luiza (identificado pelo link)
+        if "magazine" in deal_data['link'].lower():
+            msg_linhas.append(f"{deal_data['preco']} no Pix")
+        else:
+            msg_linhas.append(f"{deal_data['preco']}")
         
         if deal_data.get('desconto_pix'):
             msg_linhas.append(f"{deal_data['desconto_pix']}")
@@ -75,4 +79,26 @@ class WhatsappPoster(BasePoster):
                     print("   !!! Sem resposta do servidor.")
                 if tentativa < max_tentativas:
                     time.sleep(5)
+                else:
+                    # Se falhar em todas as tentativas, lança o erro para ser capturado pelo app.py
+                    raise e
         return False
+
+    def send_text(self, message):
+        """
+        Envia uma mensagem de texto simples para o chat configurado.
+        Útil para logs de erro e notificações do sistema.
+        """
+        url_endpoint = f"{self.api_url}/message/sendText/{self.instance_name}"
+        payload = {
+            "number": self.chat_id,
+            "text": message
+        }
+        
+        try:
+            response = requests.post(url_endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            return True
+        except Exception as e:
+            print(f"   !!! Erro ao enviar notificação de texto: {e}")
+            return False
