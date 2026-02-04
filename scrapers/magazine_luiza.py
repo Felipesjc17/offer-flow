@@ -21,13 +21,14 @@ from .base_scraper import BaseScraper
 from database.database import deal_exists
 
 class MagazineLuizaScraper(BaseScraper):
-    def __init__(self, url, session_path):
+    def __init__(self, url, session_path, limit=3):
         if uc is None:
             print(f">>> ERRO DETALHADO AO IMPORTAR: {uc_error}")
             print(">>> undetected_chromedriver não instalado. Execute: pip install undetected-chromedriver")
             sys.exit(1)
         self.url = url
         self.session_path = session_path
+        self.limit = limit
         self.driver = self._iniciar_driver()
 
     def _iniciar_driver(self):
@@ -38,7 +39,7 @@ class MagazineLuizaScraper(BaseScraper):
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--disable-notifications")
         
-        driver = uc.Chrome(options=chrome_options)
+        driver = uc.Chrome(options=chrome_options, version_main=144)
         return driver
 
     def fetch_deals(self):
@@ -55,7 +56,7 @@ class MagazineLuizaScraper(BaseScraper):
         candidatos = []
         collected_count = 0
         for i, card in enumerate(cards):
-            if collected_count >= 3:
+            if collected_count >= self.limit:
                 break
             try:
                 link_original = card.get_attribute("href")

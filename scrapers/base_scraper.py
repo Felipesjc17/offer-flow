@@ -11,3 +11,10 @@ class BaseScraper(ABC):
         Deve ser implementado por todas as subclasses.
         """
         pass
+
+    def close(self):
+        """
+        Método opcional para limpeza de recursos (ex: fechar navegador).
+        Implementação padrão vazia para scrapers que não precisam (ex: API).
+        """
+        pass

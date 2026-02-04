@@ -84,3 +84,24 @@ def add_deal(deal_link, deal_title):
     finally:
         if conn:
             conn.close()
+
+def clean_old_deals(hours=24):
+    """
+    Remove ofertas do banco de dados que são mais antigas que o limite de horas.
+    Isso permite que ofertas sejam repostadas após esse período.
+    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(f"DELETE FROM deals WHERE post_date < datetime('now', '-{hours} hours')")
+        
+        count = cursor.rowcount
+        conn.commit()
+        if count > 0:
+            print(f">>> Limpeza: {count} ofertas expiradas (> {hours}h) foram removidas do banco.")
+    except sqlite3.Error as e:
+        print(f">>> Erro ao limpar ofertas antigas: {e}")
+    finally:
+        if conn:
+            conn.close()
