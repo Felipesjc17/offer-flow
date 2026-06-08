@@ -20,6 +20,36 @@ except Exception as e:
 from .base_scraper import BaseScraper
 from database.database import deal_exists
 
+def get_chrome_main_version():
+    """Tenta detectar a versão principal do Chrome instalado no Windows."""
+    import subprocess
+    import re
+    
+    commands = [
+        r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version',
+        r'reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome" /v version',
+        r'(Get-Item "C:\Program Files\Google\Chrome\Application\chrome.exe").VersionInfo.ProductVersion',
+        r'(Get-Item "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe").VersionInfo.ProductVersion'
+    ]
+    
+    for cmd in commands:
+        try:
+            if "reg query" in cmd:
+                output = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode()
+                version = re.search(r'(\d+)\.', output)
+                if version:
+                    return int(version.group(1))
+            else:
+                # PowerShell commands
+                ps_cmd = f"powershell -command \"{cmd}\""
+                output = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL).decode().strip()
+                version = re.search(r'^(\d+)', output)
+                if version:
+                    return int(version.group(1))
+        except:
+            continue
+    return None
+
 class MagazineLuizaScraper(BaseScraper):
     def __init__(self, url, session_path, limit=3):
         if uc is None:
@@ -33,13 +63,21 @@ class MagazineLuizaScraper(BaseScraper):
 
     def _iniciar_driver(self):
         """Configura e inicia o WebDriver com persistência de sessão."""
+        print(">>> Detectando versão do Chrome...")
+        detected_version = get_chrome_main_version()
+        if detected_version:
+            print(f">>> Chrome v{detected_version} detectado.")
+        else:
+            detected_version = 148 # Fallback
+            print(f">>> Versão não detectada, usando fallback v{detected_version}")
+
         print(">>> Iniciando Browser...")
         chrome_options = uc.ChromeOptions()
         chrome_options.add_argument(f"--user-data-dir={self.session_path}")
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--disable-notifications")
         
-        driver = uc.Chrome(options=chrome_options, version_main=144)
+        driver = uc.Chrome(options=chrome_options, version_main=detected_version)
         return driver
 
     def fetch_deals(self):
@@ -118,6 +156,23 @@ class MagazineLuizaScraper(BaseScraper):
                     item['imagem'] = img_hq.get_attribute("src")
             except Exception as e:
                 print(f"   [Aviso] Falha ao obter imagem HQ: {e}")
+            
+            # Extrair cupom se existir
+            item['cupom_codigo'] = None
+            item['cupom_desconto'] = None
+            try:
+                coupon_inputs = self.driver.find_elements(By.CSS_SELECTOR, 'input[data-testid="coupon-code-input"]')
+                if coupon_inputs:
+                    item['cupom_codigo'] = coupon_inputs[0].get_attribute("value")
+                    try:
+                        coupon_copy_elem = self.driver.find_element(By.CSS_SELECTOR, '[data-testid="coupon-code-copy"]')
+                        strong_elem = coupon_copy_elem.find_element(By.TAG_NAME, 'strong')
+                        item['cupom_desconto'] = strong_elem.text
+                    except Exception as e_desc:
+                        pass
+                    print(f"   [Cupom Encontrado] Codigo: {item['cupom_codigo']}, Desconto: {item['cupom_desconto']}")
+            except Exception as e_cupom:
+                print(f"   [Aviso] Falha ao obter cupom: {e_cupom}")
             
             produtos.append(item)
             time.sleep(1)

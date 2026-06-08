@@ -14,6 +14,7 @@ from social.whatsapp_poster import WhatsappPoster
 from social.instagram_poster import InstagramPoster
 from social.facebook_poster import FacebookPoster
 from database.database import init_db, deal_exists, add_deal, clean_old_deals
+from utils.image_generator import ImageGenerator
 
 class DualLogger:
     """Redireciona a saída (stdout/stderr) para o console e para um arquivo de log."""
@@ -60,14 +61,27 @@ class DualLogger:
         for line in lines:
             if self.new_line and line != "\n":
                 prefix = f"[{timestamp}] "
-                self.terminal.write(prefix)
+                self._safe_print(prefix)
                 self.log.write(prefix)
             
-            self.terminal.write(line)
+            self._safe_print(line)
             self.log.write(line)
             self.new_line = line.endswith("\n")
 
         self.log.flush()
+
+    def _safe_print(self, text):
+        try:
+            self.terminal.write(text)
+        except Exception:
+            # Fallback para terminais que não suportam UTF-8 (ex: Windows CP1252)
+            try:
+                encoding = getattr(self.terminal, 'encoding', 'utf-8') or 'utf-8'
+                # Substitui caracteres problemáticos por '?'
+                safe_text = text.encode(encoding, errors='replace').decode(encoding)
+                self.terminal.write(safe_text)
+            except Exception:
+                pass
 
     def flush(self):
         self.terminal.flush()
@@ -115,9 +129,22 @@ def main():
 
     def notify_error(e, context=""):
         if error_poster:
-            tb = traceback.format_exc()
-            msg = f"🚨 *ERRO NO OFFER FLOW* 🚨\n\n*Contexto:* {context}\n*Erro:* {str(e)}\n\n*Traceback:*\n```{tb[:3000]}```"
-            error_poster.send_text(msg)
+            try:
+                tb = traceback.format_exc()
+                msg = f"🚨 *ERRO NO OFFER FLOW* 🚨\n\n*Contexto:* {context}\n*Erro:* {str(e)}\n\n*Traceback:*\n```{tb[:3000]}```"
+                error_poster.send_text(msg)
+            except Exception as ex:
+                print(f"   !!! Falha ao enviar alerta para WhatsApp (Verifique se a API está rodando): {ex}")
+
+    # Carrega URLs da Magazine Luiza do .env para a rotação
+    magalu_urls = [url for url in [
+        os.getenv("MAGAZINE_LUIZA_URL_SMARTPHONES"),
+        os.getenv("MAGAZINE_LUIZA_URL_ELETRODOMESTICOS"),
+        os.getenv("MAGAZINE_LUIZA_URL_VIDEO_TV"),
+        os.getenv("MAGAZINE_LUIZA_URL_INFORMATICA")
+    ] if url] # Apenas adiciona se a URL estiver definida no .env
+
+    magalu_idx = 0
 
     while True:
         # --- Verificação de Horário de Funcionamento ---
@@ -163,17 +190,39 @@ def main():
 
         # Define o preço mínimo para postagem (0 = sem limite)
         min_price_env = os.getenv("MIN_PRICE_TO_POST")
-        min_price = float(min_price_env) if min_price_env else 0.0
+        min_price = 0.0
+        if min_price_env:
+            try:
+                min_price = float(str(min_price_env).replace(",", ".").strip())
+            except ValueError:
+                print(f">>> AVISO: MIN_PRICE_TO_POST inválido no .env ('{min_price_env}'). Desativando filtro de preço mínimo.")
 
         # --- Configurações dos Scrapers ---
         scrapers = []
-        if os.getenv("MAGAZINE_LUIZA_URL"):
-            limit = int(os.getenv("MAGAZINE_LUIZA_LIMIT", default_limit))
-            scrapers.append(MagazineLuizaScraper(
-                url=os.getenv("MAGAZINE_LUIZA_URL"),
-                session_path=os.path.join(os.getcwd(), "sessao_chrome"),
-                limit=limit
-            ))
+        
+        # Magazine Luiza com Rotação de URL
+        current_magalu_url = magalu_urls[magalu_idx]
+        
+        # Extração de nome de categoria mais robusta
+        try:
+            parts = [p for p in current_magalu_url.split('/') if p]
+            category_slug = parts[-1] if parts[-1] != 'l' else parts[-2]
+            category_name = category_slug.replace('-', ' ').title()
+        except Exception:
+            category_name = "Ofertas"
+            
+        print(f">>> [Magalu] Ciclo atual focado em: {category_name}")
+        
+        limit = int(os.getenv("MAGAZINE_LUIZA_LIMIT", default_limit))
+        scrapers.append(MagazineLuizaScraper(
+            url=current_magalu_url,
+            session_path=os.path.join(os.getcwd(), "sessao_chrome"),
+            limit=limit
+        ))
+        
+        # Rotaciona o índice para o próximo ciclo
+        magalu_idx = (magalu_idx + 1) % len(magalu_urls)
+
         if os.getenv("MERCADO_LIVRE_URL"):
             limit = int(os.getenv("MERCADO_LIVRE_LIMIT", default_limit))
             scrapers.append(MercadoLivreScraper(url=os.getenv("MERCADO_LIVRE_URL"), limit=limit))
@@ -254,10 +303,42 @@ def main():
                     print("\n>>> AVISO: Postagem no WhatsApp ativada, mas as configurações da API estão incompletas no .env.")
 
             if os.getenv("POST_TO_INSTAGRAM", "false").lower() == "true":
-                posters.append(InstagramPoster())
+                ig_token = os.getenv("INSTAGRAM_ACCESS_TOKEN")
+                ig_account = os.getenv("INSTAGRAM_ACCOUNT_ID")
+                
+                if ig_token and ig_account:
+                    posters.append(InstagramPoster(
+                        access_token=ig_token,
+                        account_id=ig_account
+                    ))
+                else:
+                    print("\n>>> AVISO: Postagem no Instagram ativada, mas credenciais (TOKEN/ACCOUNT_ID) incompletas no .env.")
             
             if os.getenv("POST_TO_FACEBOOK", "false").lower() == "true":
-                posters.append(FacebookPoster())
+                fb_token = os.getenv("FACEBOOK_ACCESS_TOKEN")
+                fb_page = os.getenv("FACEBOOK_PAGE_ID")
+                
+                if fb_token and fb_page:
+                    posters.append(FacebookPoster(
+                        access_token=fb_token,
+                        page_id=fb_page
+                    ))
+                else:
+                    print("\n>>> AVISO: Postagem no Facebook ativada, mas credenciais (TOKEN/PAGE_ID) incompletas no .env.")
+
+            # --- Review Mode (Sobrescreve posters se ativado) ---
+            is_review_mode = os.getenv("REVIEW_MODE", "false").lower() == "true"
+            review_group_id = os.getenv("WHATSAPP_REVIEW_GROUP_ID")
+            
+            if is_review_mode and review_group_id:
+                print(f"\n>>> [REVIEW MODE] Ativado! Redirecionando TUDO para o grupo de revisão: {review_group_id}")
+                # Substitui todos os posters por um único poster de WhatsApp voltado para o grupo de revisão
+                posters = [WhatsappPoster(
+                    api_url=os.getenv("EVOLUTION_API_URL"),
+                    api_key=os.getenv("EVOLUTION_API_KEY"),
+                    instance_name=os.getenv("EVOLUTION_INSTANCE_NAME"),
+                    chat_id=review_group_id
+                )]
 
             # --- Envio das Ofertas Novas ---
             if not ofertas_para_postar:
@@ -265,14 +346,61 @@ def main():
             elif not posters:
                 print("\n>>> Nenhuma plataforma de postagem foi ativada. As ofertas não serão enviadas.")
             else:
+                # --- Mensagem de Cupons (Uma vez por ciclo antes das ofertas) ---
+                coupon_url = os.getenv("MAGAZINE_LUIZA_COUPONS_URL", "https://especiais.magazineluiza.com.br/magazinevoce/cupons/?showcase=magazineachadostecbr")
+                msg_cupons = (
+                    "Vai comprar no Magazine Luiza?\n"
+                    "🔥 Não perca nenhum desconto na sua compra.\n"
+                    "🛒 Acesse o link abaixo e veja a lista de cupons disponíveis:\n"
+                    f"{coupon_url}"
+                )
+                
+                print(f"\n>>> Enviando mensagem de cupons para {len(posters)} plataforma(s)...")
+                for poster in posters:
+                    try:
+                        # Envia principalmente no WhatsApp que aceita texto puro
+                        if hasattr(poster, 'send_text'):
+                            poster.send_text(msg_cupons)
+                    except Exception as e:
+                        print(f"   !!! Erro ao enviar mensagem de cupons com {poster.__class__.__name__}: {e}")
+
                 print(f"\n>>> {len(ofertas_para_postar)} novas ofertas para postar em {len(posters)} plataforma(s)...")
                 for i, produto in enumerate(ofertas_para_postar):
                     print(f"\n-- Postando Oferta {i+1}/{len(ofertas_para_postar)}: {produto['titulo'][:40]}... --")
+                    
                     for poster in posters:
                         try:
                             poster.post_deal(produto)
+                            
+                            # Se estiver em modo de revisão, também gera e envia a imagem de STORY para o grupo
+                            if is_review_mode and isinstance(poster, WhatsappPoster):
+                                print("   [Review Mode] Aguardando para enviar imagem de Story...")
+                                time.sleep(3) # Delay para evitar 429 da API
+                                
+                                print("   [Review Mode] Gerando imagem de Story para revisão...")
+                                story_path = ImageGenerator.generate(produto, mode="story")
+                                if story_path and os.path.exists(story_path):
+                                    review_deal = produto.copy()
+                                    # Agora o WhatsappPoster aceita caminho local
+                                    review_deal['imagem'] = story_path
+                                    review_deal['titulo'] = f"📸 {produto['titulo']}"
+                                    review_deal['is_story_review'] = True
+                                    
+                                    story_review_group = os.getenv("WHATSAPP_STORY_REVIEW_GROUP_ID")
+                                    if story_review_group:
+                                        print(f"   [Review Mode] Enviando Story para o grupo específico: {story_review_group}")
+                                        story_poster = WhatsappPoster(
+                                            api_url=poster.api_url,
+                                            api_key=poster.api_key,
+                                            instance_name=poster.instance_name,
+                                            chat_id=story_review_group
+                                        )
+                                        story_poster.post_deal(review_deal)
+                                    else:
+                                        poster.post_deal(review_deal)
                         except Exception as e:
                             print(f"   !!! Erro ao postar com {poster.__class__.__name__}: {e}")
+                            traceback.print_exc()
                             notify_error(e, f"Postagem com {poster.__class__.__name__}")
                     
                     # Adiciona a oferta ao banco de dados para não ser postada novamente

@@ -14,24 +14,28 @@ O projeto é organizado de forma modular para facilitar a adição de novos scra
 ├── scrapers/              # Módulos de captura de ofertas
 │   ├── base_scraper.py
 │   ├── magazine_luiza.py
-│   └── mercado_livre.py
+│   ├── mercado_livre.py
+│   └── shopee.py          # Implementação via API Oficial de Afiliados
 ├── social/                # Módulos de postagem em redes sociais
 │   ├── base_poster.py
 │   ├── whatsapp_poster.py
-│   ├── instagram_poster.py  # (Simulação)
-│   └── facebook_poster.py   # (Simulação)
+│   ├── instagram_poster.py  # Publicação em Feed e Stories (via Graph API)
+│   └── facebook_poster.py   # Publicação em Feed e Stories (via Graph API)
 ├── .env                   # Arquivo para armazenar suas chaves de API
 ├── .env.example           # Arquivo de exemplo para o .env
-├── requirements.txt       # Lista de dependências Python
+├── requirements.txt       # Lista de dependências Python (inclui Pillow para imagens)
 ├── .gitignore
 ├── deals.db               # (Gerado localmente) Banco de dados SQLite
 ├── MODULARIZATION_PRD.md
+├── TECHNICAL_ARCHITECTURE.md # Documentação técnica detalhada e roadmap
 └── README.md
 ```
 
 ## Configuração do Ambiente
 
 Siga estes passos para configurar e executar o projeto localmente.
+
+**Pré-requisito:** Certifique-se de ter o [Python](https://www.python.org/downloads/) (versão 3.8 ou superior) instalado em sua máquina caso ainda não o tenha.
 
 ### 1. Crie e Ative um Ambiente Virtual (Virtual Environment)
 
@@ -61,6 +65,10 @@ Com o ambiente virtual ativado, instale todas as dependências listadas no arqui
 pip install -r requirements.txt
 ```
 
+**Nota sobre Estética (Instagram Stories):** Para que as imagens geradas no Instagram fiquem com o design idêntico ao planejado, recomenda-se colocar os arquivos de fonte `Montserrat-Bold.ttf`, `Montserrat-ExtraBold.ttf`, `Montserrat-ExtraBoldItalic.ttf`, `Montserrat-Regular.ttf` e `Montserrat-Medium.ttf` na raiz do projeto. Caso contrário, o sistema usará a fonte Arial como fallback.
+
+**Nota sobre Scrapers (Magazine Luiza):** Este scraper utiliza o `undetected-chromedriver` e requer o Google Chrome instalado. Certifique-se de que a versão do Chrome em sua máquina seja compatível com a configurada no código (`scrapers/magazine_luiza.py`).
+
 ### 3. Configure as Variáveis de Ambiente do Aplicativo
 
 O arquivo `.env` armazena as URLs dos scrapers e as chaves de API.
@@ -82,9 +90,15 @@ O arquivo `.env` armazena as URLs dos scrapers e as chaves de API.
     - `SHOPEE_MIN_SALES=20` (Mínimo de vendas para considerar a oferta)
     - `SHOPEE_MIN_RATING=4.0` (Avaliação mínima para considerar a oferta)
 - **Ambientes e Monitoramento:**
+    - **Imgur (Stories do Instagram):** Para gerar imagens personalizadas nos Stories, é necessário um Client ID do Imgur.
+        1. Acesse https://api.imgur.com/oauth2/addclient.
+        2. Escolha "Anonymous usage without user authorization".
+        3. Adicione no `.env`: `IMGUR_CLIENT_ID=seu_client_id`.
     - `APP_ENV="production"` (Defina como `test` para usar o grupo de teste)
     - `WHATSAPP_CHAT_ID_TEST` (ID do grupo para testes, usado quando `APP_ENV=test`)
     - `WHATSAPP_ERROR_GROUP_ID` (ID do grupo para receber notificações de erros críticos e logs)
+    - **Facebook Token:** Ao gerar o token no Graph API Explorer, certifique-se de selecionar a **Página específica** (ex: Achados Tec Brasil) no campo "Usuário ou Página". Isso gera um Token de Página direto, evitando erros de permissão.
+    - **Instagram Scopes:** Se estiver usando o "Instagram Login" (sem página vinculada), utilize os escopos `instagram_business_content_publish` e `instagram_business_basic`.
 
 ### 4. Configure e Inicie a API de WhatsApp (Evolution API)
 
@@ -136,9 +150,8 @@ run.bat
 Com o ambiente virtual ativado e os serviços da Evolution API rodando, execute o script principal:
 
 ```bash
-python app.py
-```
-
+# Sistema de Captura de Ofertas
+...
 O script irá:
 1.  Inicializar o banco de dados `deals.db`.
 2.  Executar cada scraper ativado para coletar ofertas.
@@ -146,22 +159,32 @@ O script irá:
 4.  Postar as **ofertas novas** usando os módulos ativados (WhatsApp, etc.).
 5.  Registrar as novas ofertas no banco de dados.
 
-## Solução de Problemas (Troubleshooting)
+## Validação de Design (Instagram Stories)
 
-### Erro ao enviar para o Git (`git push`)
-
-Se você receber um erro como `Updates were rejected because the remote contains work that you do not have locally`, significa que o repositório remoto no GitHub tem commits que você não tem na sua máquina local.
-
-**Solução:** Baixe as alterações remotas e integre-as com as suas antes de enviar novamente.
+Para visualizar e testar o layout das imagens geradas para o Instagram sem precisar fazer uma postagem real, utilize o script de teste:
 
 ```bash
-# Baixa as alterações do repositório remoto e as mescla com sua branch local
-git pull origin main
-
-# Depois do pull, envie seus commits novamente
-git push -u origin main
+python test_story_image.py
 ```
+
+- Este script gera uma imagem local chamada `story_achados_tec.jpg`.
+- Ele utiliza dados fictícios e uma imagem de exemplo para validar o posicionamento de textos, cores e fontes.
+- Use este utilitário sempre que fizer alterações no método `_generate_story_image` em `social/instagram_poster.py`.
+
+## Utilitários
+...
+
+Se tiver problemas com o ID do Instagram, execute o script auxiliar:
+
+```bash
+python utils/get_instagram_id.py
+```
+Isso verificará sua Página e mostrará o ID correto do Instagram para colocar no `.env`.
+
+## Documentação Adicional
+
+Para uma visão detalhada da arquitetura técnica, fluxo de dados, lógica de cupons e o roadmap completo de melhorias futuras, consulte o arquivo [TECHNICAL_ARCHITECTURE.md](file:///C:/Users/felip/Documents/Achados/offer-flow/TECHNICAL_ARCHITECTURE.md).
 
 ## Contribuição
 
-Ao fazer alterações relevantes no projeto, lembre-se de **sempre atualizar este arquivo `README.md`**.
+Ao fazer alterações relevantes no projeto, lembre-se de **sempre atualizar este arquivo `README.md`** e a documentação técnica relacionada.

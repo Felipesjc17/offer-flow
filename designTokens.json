@@ -1,0 +1,51 @@
+{
+  "brand": "Achados Tec BR (CT Style)",
+  "palette": {
+    "primary": {
+      "vibrant_blue": "#0078FF",
+      "description": "Fundo principal vibrante estilo CT Ofertas."
+    },
+    "accents": {
+      "electric_yellow": "#FFD700",
+      "description": "Utilizado para o título principal com contorno preto."
+    },
+    "highlights": {
+      "cyan_neon": "#00E5FF",
+      "description": "Detalhes secundários e elementos de tecnologia."
+    },
+    "status": {
+      "whatsapp_green": "#34C759",
+      "coupon_orange": "#FF8C00",
+      "pix_blue": "#0078FF",
+      "description": "Cores para tags de status: Frete Grátis, Cupom e PIX."
+    },
+    "neutrals": {
+      "pure_white": "#FFFFFF",
+      "pure_black": "#000000",
+      "description": "Textos e sombras sólidas de alto contraste."
+    }
+  },
+  "typography_tokens": {
+    "headings": {
+      "style": "Sans-serif (Rounded)",
+      "weight": "Extra Bold",
+      "case": "Sentence case / Uppercase",
+      "description": "Títulos de impacto com sombra/contorno sólido."
+    },
+    "body": {
+      "style": "Sans-serif",
+      "weight": "Bold",
+      "description": "Descrições de produtos e preços."
+    }
+  },
+  "ui_elements": {
+    "shape": "Rounded Rectangles / Pill-shaped",
+    "corner_radius": "30px - 60px",
+    "effects": [
+      "Solid Black Shadow (Hard)",
+      "Outline on Titles",
+      "Pill-shaped badges"
+    ],
+    "description": "Estética baseada em cores sólidas, cantos arredondados e sombras rígidas."
+  }
+}

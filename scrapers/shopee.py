@@ -14,10 +14,16 @@ class ShopeeScraper(BaseScraper):
         self.app_secret = app_secret or os.getenv("SHOPEE_APP_SECRET") or ""
 
         try:
-            self.min_sales = int(float(os.getenv("SHOPEE_MIN_SALES", 10)))
+            min_sales_env = os.getenv("SHOPEE_MIN_SALES", "10")
+            self.min_sales = int(float(str(min_sales_env).replace(",", ".")))
         except (ValueError, TypeError):
             self.min_sales = 19
-        self.min_rating = float(os.getenv("SHOPEE_MIN_RATING", 4.0))
+            
+        try:
+            min_rating_env = os.getenv("SHOPEE_MIN_RATING", "4.0")
+            self.min_rating = float(str(min_rating_env).replace(",", "."))
+        except (ValueError, TypeError):
+            self.min_rating = 4.0
 
         if not self.app_id or not self.app_secret:
             print(">>> [Shopee] AVISO: Credenciais não encontradas. Verifique o .env")
