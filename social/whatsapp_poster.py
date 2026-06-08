@@ -23,16 +23,23 @@ class WhatsappPoster(BasePoster):
         """
         print(f">>> Enviando oferta via Evolution API: {deal_data['titulo'][:15]}...")
 
-        # Monta a mensagem com as novas informações
+        # Monta a mensagem
         msg_linhas = [f"🚨 *OFERTA DO DIA* 🚨\n", deal_data['titulo'], ""]
-        
         if deal_data.get('preco_original'):
             msg_linhas.append(f"De ~{deal_data['preco_original']}~")
-            
         if deal_data.get('parcelamento'):
             msg_linhas.append(f"Por apenas {deal_data['parcelamento']}")
-            
-        # Adiciona "no Pix" apenas se for Magazine Luiza (identificado pelo link)
+        
+        # Cupom de desconto se houver
+        if deal_data.get('cupom_codigo') or deal_data.get('cupom_desconto'):
+            if deal_data.get('cupom_codigo') and deal_data.get('cupom_desconto'):
+                coupon_text = f"🎟️ *Cupom:* `{deal_data['cupom_codigo']}` ({deal_data['cupom_desconto']})"
+            elif deal_data.get('cupom_codigo'):
+                coupon_text = f"🎟️ *Cupom:* `{deal_data['cupom_codigo']}`"
+            else:
+                coupon_text = f"🎟️ *Cupom:* {deal_data['cupom_desconto']}"
+            msg_linhas.append(coupon_text)
+
         if "magazine" in deal_data['link'].lower():
             msg_linhas.append(f"{deal_data['preco']} no Pix")
         else:
@@ -42,47 +49,65 @@ class WhatsappPoster(BasePoster):
             msg_linhas.append(f"{deal_data['desconto_pix']}")
             
         msg_linhas.append(f"\n👇 *Garanta o seu aqui:* \n{deal_data['link']}")
-        
         mensagem = "\n".join(msg_linhas)
 
-        # Tenta enviar com imagem
-        if deal_data.get('imagem'):
-            url_endpoint = f"{self.api_url}/message/sendMedia/{self.instance_name}"
-            payload = {
-                "number": self.chat_id,
-                "media": deal_data['imagem'],
-                "mediatype": "image",
-                "caption": mensagem
-            }
-            print("   Enviando com imagem...")
-        # Se não tiver imagem, envia só texto
+        url_endpoint = f"{self.api_url}/message/sendMedia/{self.instance_name}"
+        
+        # Preparação do Envio
+        payload = {"number": self.chat_id, "mediatype": "image", "caption": mensagem}
+        headers = {"apikey": self.api_key} # Importante: não forçar Content-Type para multipart
+
+        is_local = deal_data.get('imagem') and os.path.exists(deal_data['imagem'])
+
+        if is_local:
+            print(f"   Enviando imagem local: {deal_data['imagem']}")
+        elif deal_data.get('imagem'):
+            print("   Enviando com URL de imagem...")
+            payload["media"] = deal_data['imagem']
         else:
-            url_endpoint = f"{self.api_url}/message/sendText/{self.instance_name}"
-            payload = {
-                "number": self.chat_id,
-                "text": mensagem
-            }
             print("   Enviando apenas texto...")
+            url_endpoint = f"{self.api_url}/message/sendText/{self.instance_name}"
+            payload = {"number": self.chat_id, "text": mensagem}
 
         max_tentativas = 3
         for tentativa in range(1, max_tentativas + 1):
+            file_handle = None
             try:
-                response = requests.post(url_endpoint, json=payload, headers=self.headers)
-                response.raise_for_status()  # Lança um erro para status HTTP 4xx/5xx
+                if is_local:
+                    # Abre o arquivo a cada tentativa para garantir que o ponteiro esteja no início e o arquivo aberto
+                    file_handle = open(deal_data['imagem'], 'rb')
+                    files_payload = {'file': (os.path.basename(deal_data['imagem']), file_handle, 'image/jpeg')}
+                    # Envio Multipart (Local)
+                    response = requests.post(url_endpoint, data=payload, files=files_payload, headers=headers)
+                else:
+                    # Envio JSON (URL ou Texto)
+                    response = requests.post(url_endpoint, json=payload, headers=self.headers)
+                
+                response.raise_for_status()
                 print(f"   Oferta enviada com sucesso (Status: {response.status_code}).")
+                
+                if os.getenv("POST_STORY_WHATSAPP", "true").lower() == "true" and not deal_data.get('is_story_review'):
+                    self._post_story(deal_data)
+                
                 return True
             except Exception as e:
                 print(f"   !!! Erro ao enviar via API (Tentativa {tentativa}/{max_tentativas}): {e}")
-                if hasattr(e, 'response') and e.response is not None:
-                    print(f"   !!! Detalhes do erro: {e.response.text}")
-                else:
-                    print("   !!! Sem resposta do servidor.")
-                if tentativa < max_tentativas:
-                    time.sleep(5)
-                else:
-                    # Se falhar em todas as tentativas, lança o erro para ser capturado pelo app.py
-                    raise e
+                if tentativa < max_tentativas: time.sleep(5)
+                else: raise e
+            finally:
+                if file_handle:
+                    file_handle.close()
         return False
+
+    def _post_story(self, deal_data):
+        """
+        Envia uma oferta para o Status/Story do WhatsApp.
+        Nota: A Evolution API suporta envio para Status via endpoint de mensagem.
+        """
+        print(f">>> [WhatsApp] Preparando postagem no Status...")
+        # Lógica para Status (opcional, dependendo da versão da Evolution API)
+        # Por padrão, vamos focar no envio para o grupo/chat principal.
+        pass
 
     def send_text(self, message):
         """

@@ -148,3 +148,6 @@ cython_debug/
 
 # Browser session data
 sessao_chrome/
+
+# Mercado Livre API Tokens
+ml_tokens.json
