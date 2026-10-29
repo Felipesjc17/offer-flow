@@ -9,7 +9,7 @@ echo ===================================================
 call .venv\Scripts\activate
 
 :: 2. Executa o script de limpeza (Mata processos do ChromeDriver)
-python cleanup.py
+python scripts/cleanup.py
 
 :: 3. Executa o app principal
 python app.py

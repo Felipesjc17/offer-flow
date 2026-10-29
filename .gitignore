@@ -151,3 +151,8 @@ sessao_chrome/
 
 # Mercado Livre API Tokens
 ml_tokens.json
+
+
+# Logs e arquivos temporários gerados
+logs/
+temp/

@@ -5,6 +5,13 @@ import random
 import requests
 import re
 try:
+    import setuptools
+except ImportError:
+    pass
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+try:
     from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
@@ -15,16 +22,47 @@ from database.database import deal_exists
 class MercadoLivreScraper(BaseScraper):
     """
     Scraper para capturar ofertas do dia do Mercado Livre.
-    Utiliza BeautifulSoup e rotaciona as paginas de ofertas para obter produtos variados.
+    Utiliza undetected_chromedriver com a sessao persistida (para evitar bloqueio
+    de account-verification do ML) e BeautifulSoup para extrair os produtos.
     """
-    def __init__(self, url=None, limit=5):
+    def __init__(self, url=None, limit=5, session_path=None):
         if BeautifulSoup is None:
             print(">>> beautifulsoup4 nao instalado. Execute: pip install beautifulsoup4")
             sys.exit(1)
         self.limit = limit
+        self.session_path = session_path or os.path.join(os.getcwd(), "sessao_chrome")
+        self.driver = None
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
         }
+
+    def _iniciar_driver(self):
+        """Inicia o navegador Chrome com a sessao persistida."""
+        if self.driver is not None:
+            return self.driver
+
+        import undetected_chromedriver as uc
+        from .magazine_luiza import get_chrome_main_version
+
+        version = get_chrome_main_version() or 148
+        show_browser = os.getenv("SHOW_BROWSER", "false").strip().lower() == "true"
+        modo_str = "visivel" if show_browser else "oculto (headless)"
+
+        options = uc.ChromeOptions()
+        options.add_argument(f"--user-data-dir={self.session_path}")
+        options.add_argument("--disable-notifications")
+        if show_browser:
+            options.add_argument("--start-maximized")
+        else:
+            options.add_argument("--headless=new")
+            options.add_argument("--window-size=1920,1080")
+            options.add_argument(
+                f"--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{version}.0.0.0 Safari/537.36"
+            )
+
+        print(f">>> [Mercado Livre] Iniciando navegador Chrome (v{version}) em modo {modo_str}...")
+        self.driver = uc.Chrome(options=options, version_main=version)
+        return self.driver
 
     def _clean_installments(self, raw_text):
         """Limpa o texto do parcelamento para manter apenas a informacao util."""
@@ -52,19 +90,32 @@ class MercadoLivreScraper(BaseScraper):
         url = f"https://www.mercadolivre.com.br/ofertas?page={page}"
         print(f">>> Acessando ofertas do Mercado Livre (Pagina {page}): {url}")
         
+        driver = self._iniciar_driver()
         try:
-            response = requests.get(url, headers=self.headers, timeout=15)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            print(f"   [Erro ao acessar URL do Mercado Livre]: {e}")
-            return []
+            driver.get(url)
+            wait = WebDriverWait(driver, 15)
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.poly-card')))
+            time.sleep(2)
+            html_content = driver.page_source
+        except Exception as e:
+            current_url = ""
+            try:
+                current_url = driver.current_url
+            except Exception:
+                pass
+            if "account-verification" in current_url or "login" in current_url:
+                raise RuntimeError(
+                    f"Mercado Livre solicitou verificacao de conta ({current_url}). "
+                    "Execute 'python scripts/login_ml_affiliate.py' para autenticar a sessao."
+                )
+            print(f"   [Erro ao carregar ofertas do Mercado Livre no navegador]: {e}")
+            html_content = driver.page_source if driver else ""
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(html_content, 'html.parser')
         cards = soup.find_all(class_='poly-card')
         
         if not cards:
-            print("   [Aviso] Nenhum card 'poly-card' encontrado. A estrutura do site pode ter mudado.")
-            return []
+            raise RuntimeError("Nenhum produto (poly-card) encontrado no Mercado Livre. O site pode ter mudado a estrutura ou bloqueado o acesso.")
 
         produtos = []
         collected_count = 0
@@ -183,44 +234,25 @@ class MercadoLivreScraper(BaseScraper):
 
     def _convert_links_to_affiliate(self, deals):
         """
-        Abre o navegador Chrome com a sessao persistida do usuario e
+        Reutiliza o navegador Chrome com a sessao persistida do usuario e
         converte os links originais em links de afiliados via JS Fetch.
         """
         if not deals:
             return deals
             
-        try:
-            import undetected_chromedriver as uc
-        except ImportError:
-            print(">>> [ML Affiliate] undetected_chromedriver nao instalado. Mantendo links originais.")
-            return deals
-            
-        from .magazine_luiza import get_chrome_main_version
-        
-        session_path = os.path.join(os.getcwd(), "sessao_chrome")
         tag = os.getenv("MERCADO_LIVRE_AFFILIATE_TAG", "fs20251223173450")
-        version = get_chrome_main_version() or 148
-        
-        options = uc.ChromeOptions()
-        options.add_argument(f"--user-data-dir={session_path}")
-        options.add_argument("--disable-notifications")
-        
-        # Como o bot roda em segundo plano e ML possui forte deteccao headless (403),
-        # nao usamos a flag --headless por padrao para garantir o sucesso da chamada.
         
         driver = None
         try:
-            print(f"\n>>> [ML Affiliate] Iniciando navegador Chrome para gerar links de afiliados (Tag: {tag})...")
-            driver = uc.Chrome(options=options, version_main=version)
-            print(">>> [ML Affiliate] Acessando o Portal do Link Builder...")
+            driver = self._iniciar_driver()
+            print(f"\n>>> [ML Affiliate] Acessando o Portal do Link Builder (Tag: {tag})...")
             driver.get("https://www.mercadolivre.com.br/afiliados/linkbuilder")
             time.sleep(6) # Espera carregar a pagina
             
             # Verifica se esta autenticado ou deu erro
             if "Hubo un error" in driver.page_source or "login" in driver.current_url:
                 print(">>> [ML Affiliate] AVISO: Usuario nao autenticado no linkbuilder do Mercado Livre.")
-                print(">>> Por favor, execute 'python login_ml_affiliate.py' no terminal para realizar o login manual.")
-                driver.quit()
+                print(">>> Por favor, execute 'python scripts/login_ml_affiliate.py' no terminal para realizar o login manual.")
                 return deals
                 
             js_script = """
@@ -281,17 +313,17 @@ class MercadoLivreScraper(BaseScraper):
                 except Exception as ex:
                     print(f"   [Erro ML Affiliate] Falha ao processar link para '{deal['titulo'][:30]}': {ex}")
                     
-            driver.quit()
         except Exception as e:
             print(f">>> [ML Affiliate] Erro geral ao gerar links de afiliados: {e}")
-            if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
                     
         return deals
 
     def close(self):
-        """Mantem a compatibilidade da interface."""
-        pass
+        """Fecha o navegador se estiver aberto."""
+        if self.driver:
+            try:
+                self.driver.quit()
+                print(">>> [Mercado Livre] Navegador fechado.")
+            except Exception:
+                pass
+            self.driver = None

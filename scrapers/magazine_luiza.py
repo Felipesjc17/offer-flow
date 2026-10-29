@@ -71,11 +71,20 @@ class MagazineLuizaScraper(BaseScraper):
             detected_version = 148 # Fallback
             print(f">>> Versão não detectada, usando fallback v{detected_version}")
 
-        print(">>> Iniciando Browser...")
+        show_browser = os.getenv("SHOW_BROWSER", "false").strip().lower() == "true"
+        modo_str = "visível" if show_browser else "oculto (headless)"
+        print(f">>> Iniciando Browser em modo {modo_str}...")
         chrome_options = uc.ChromeOptions()
         chrome_options.add_argument(f"--user-data-dir={self.session_path}")
-        chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--disable-notifications")
+        if show_browser:
+            chrome_options.add_argument("--start-maximized")
+        else:
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--window-size=1920,1080")
+            chrome_options.add_argument(
+                f"--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{detected_version}.0.0.0 Safari/537.36"
+            )
         
         driver = uc.Chrome(options=chrome_options, version_main=detected_version)
         return driver

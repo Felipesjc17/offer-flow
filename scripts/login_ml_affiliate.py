@@ -16,13 +16,14 @@ except ImportError:
     sys.exit(1)
 
 # Adiciona o diretório do projeto ao PATH
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(ROOT_DIR)
 from scrapers.magazine_luiza import get_chrome_main_version
 
 def main():
     print("=== ASSISTENTE DE LOGIN - MERCADO LIVRE AFILIADOS ===")
     
-    session_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessao_chrome")
+    session_path = os.path.join(ROOT_DIR, "sessao_chrome")
     print("Caminho do perfil Chrome:", session_path)
     
     print("Detectando versão do Chrome...")

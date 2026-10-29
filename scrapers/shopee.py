@@ -65,6 +65,7 @@ class ShopeeScraper(BaseScraper):
         ]
         random.shuffle(keywords)
 
+        consecutive_failures = 0
         for kw in keywords:
             if len(all_deals) >= self.limit:
                 break
@@ -106,12 +107,14 @@ class ShopeeScraper(BaseScraper):
 
             headers = {
                 "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
                 "Authorization": f"SHA256 Credential={self.app_id}, Timestamp={timestamp}, Signature={signature}"
             }
 
             try:
-                response = requests.post(self.url, data=payload_str, headers=headers)
+                response = requests.post(self.url, data=payload_str, headers=headers, timeout=10)
                 response.raise_for_status()
+                consecutive_failures = 0
                 data = response.json()
                 
                 if "errors" in data:
@@ -183,6 +186,10 @@ class ShopeeScraper(BaseScraper):
                 
             except Exception as e:
                 print(f"   [Erro Shopee] Falha na requisição para {kw}: {e}")
+                consecutive_failures += 1
+                if consecutive_failures >= 3:
+                    print(f"   !!! [Shopee] Falha consecutiva atingiu limite (3). Abortando...")
+                    raise RuntimeError(f"ShopeeScraper falhou 3 vezes consecutivas. Último erro: {e}")
                 continue
         
         return all_deals
