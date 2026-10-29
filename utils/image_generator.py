@@ -48,7 +48,8 @@ class ImageGenerator:
         """
         width = 1080
         height = 1920 if mode == "story" else 1350
-        output_path = "story_achados_tec.jpg" if mode == "story" else "feed_achados_tec.jpg"
+        os.makedirs("temp", exist_ok=True)
+        output_path = os.path.join("temp", "story_achados_tec.jpg" if mode == "story" else "feed_achados_tec.jpg")
 
         # --- DESIGN TOKENS ---
         COLOR_BG = "#0078FF"

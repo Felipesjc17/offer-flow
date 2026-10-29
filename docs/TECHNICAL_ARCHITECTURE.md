@@ -72,6 +72,7 @@ Gera imagens promocionais dinâmicas com a identidade visual da marca utilizando
 
 ### 2.5. Utilitários Globais
 *   **DualLogger (`app.py`):** Uma classe de logger que escreve saídas para o console e arquivos de log. Possui um mecanismo de rotação diária automática de arquivos de log e trata caracteres UTF-8 de forma segura para evitar erros de codificação em terminais Windows (`cp1252`).
+*   **Notificações de Status do Bot (Start/Stop):** O loop principal em `app.py` é encapsulado em um bloco `try...except...finally`. Quando o aplicativo é iniciado com sucesso, ele envia uma notificação `🚀 Offer Flow Iniciado` para o grupo de erros configurado. Se o bot for interrompido voluntariamente (`KeyboardInterrupt` / `Ctrl+C`) ou por um erro inesperado, ele envia um aviso detalhado (`⚠️ Offer Flow Parado` ou `🚨 Parado por Erro Fatal`) para o mesmo grupo no WhatsApp.
 *   **Review Mode (Modo de Revisão):** Quando ativado no `.env` (`REVIEW_MODE="true"`), o orquestrador intercepta todas as publicações normais e redireciona os posts formatados e imagens de Stories para grupos específicos de WhatsApp (`WHATSAPP_REVIEW_GROUP_ID` e `WHATSAPP_STORY_REVIEW_GROUP_ID`) para que o administrador possa validar as ofertas manualmente antes de postá-las no canal público.
 
 ---
